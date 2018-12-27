@@ -50,6 +50,8 @@ import (
 const (
 	//txAccount = "0x3a1b3b81ed061581558a81f11d63e03129347437"
 	txAccount = "0x0963a18ea497b7724340fdfe4ff6e060d3f9e388"
+
+	requestFSN = 20
 )
 
 var (
@@ -186,7 +188,7 @@ func apiHandler(conn *websocket.Conn) {
 	rpcserver := fmt.Sprintf("http://%v:%v", *faucetServerFlag, *rpcPortFlag)
 	fmt.Printf("rpcserver: %+v\n", rpcserver)
 
-	var testcoin = new(big.Int).Mul(big.NewInt(20), big.NewInt(1000000000000000000))
+	var coinFSN = new(big.Int).Mul(big.NewInt(requestFSN), big.NewInt(1000000000000000000))
 	for {
 		var msg struct {
 			URL     string `json:"url"`
@@ -196,9 +198,10 @@ func apiHandler(conn *websocket.Conn) {
 		_ = websocket.JSON.Receive(conn, &msg)
 		log.Debug("faucet", "JSON.Receive", msg)
 		if len(msg.URL) == 0 {
-			fmt.Printf("faucet, address is null\n")
+			log.Debug("faucet, address is null\n")
+			send(conn, map[string]string{"state": "ERR", "msg": "Account is nil"}, time.Second)
 			if errs := send(conn, map[string]interface{}{
-				"conn":    *conn,
+				"state":    "ERROR",
 				"funded":   nonce,
 			}, time.Second); errs != nil {
 				log.Warn("Failed to send stats to client", "err", errs)
@@ -208,7 +211,8 @@ func apiHandler(conn *websocket.Conn) {
 			continue
 		}
 		if errh := common.IsHexAddress(msg.URL); errh != true {
-			fmt.Printf("faucet, address is valid.\n")
+			log.Debug("faucet, address is invalid.\n")
+			send(conn, map[string]string{"state": "ERR", "msg": "Account is invalid"}, time.Second)
 			continue
 		}
 		if msg.Captcha == "FSN" {
@@ -217,40 +221,40 @@ func apiHandler(conn *websocket.Conn) {
 			// Ensure the user didn't request funds too recently
 			clientc, errc := rpc.Dial(rpcserver)
 			if errc != nil {
-				fmt.Printf("client connection error:\n")
+				log.Debug("client connection error:\n")
 				continue
 			}
 			errc = clientc.CallContext(context.Background(), &result, "eth_getTransactionCount", common.HexToAddress(txAccount), "pending")
 			nonce = uint64(result)
 			log.Debug("faucet", "nonce", nonce)
-			tx := types.NewTransaction(nonce, common.HexToAddress(msg.URL), testcoin, 21000, big.NewInt(41000), nil)
+			tx := types.NewTransaction(nonce, common.HexToAddress(msg.URL), coinFSN, 21000, big.NewInt(41000), nil)
 			signed, err := ks.SignTx(account, tx, big.NewInt(40400))
 			if err != nil {
-				if err = sendError(conn, err); err != nil {
-					log.Warn("Failed to send transaction creation error to client", "err", err)
+				if err = send(conn, map[string]string{"state": "ERR", "msg": "SignTx failed."}, time.Second); err != nil {
+					log.Warn("Failed to Sign transaction", "err", err)
 					return
 				}
 			}
 			// Submit the transaction and mark as funded if successful
 			log.Debug("faucet", "HTTP-RPC client connected", rpcserver)
 
-			fmt.Printf("Faucet, addr:( %+v ), testcoin:( %v )\n", msg.URL, testcoin)
+			log.Debug("Faucet", "addr", msg.URL, "coinFSN", coinFSN)
 			// Send RawTransaction to ethereum network
 			client, err := ethclient.Dial(rpcserver)
 			if err != nil {
-				fmt.Printf("client connection error:\n")
+				log.Debug("client connection error.\n")
 				continue
 			}
 			err = client.SendTransaction(context.Background(), signed)
 			if err != nil {
+				send(conn, map[string]string{"state": "ERR", "msg": "Send Transaction Failed."}, time.Second)
 				log.Trace("faucet", "client send error", err)
 			} else {
-				fmt.Printf("Success.\n\n")
+				send(conn, map[string]string{"state": "OK", "msg": "Send Transaction Successed.\nIt takes about 1~2 blocks (15~30 second) to get to the account."}, time.Second)
 				log.Debug("faucet", "client send", "success")
 			}
-			send(conn, map[string]string{"state": "Success"}, time.Second)
 		}
-		time.Sleep(2 * time.Second)
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 
@@ -265,14 +269,3 @@ func send(conn *websocket.Conn, value interface{}, timeout time.Duration) error 
 	return websocket.JSON.Send(conn, value)
 }
 
-// sendError transmits an error to the remote end of the websocket, also setting
-// the write deadline to 1 second to prevent waiting forever.
-func sendError(conn *websocket.Conn, err error) error {
-	return send(conn, map[string]string{"error": err.Error()}, time.Second)
-}
-
-// sendSuccess transmits a success message to the remote end of the websocket, also
-// setting the write deadline to 1 second to prevent waiting forever.
-func sendSuccess(conn *websocket.Conn, msg string) error {
-	return send(conn, map[string]string{"success": msg}, time.Second)
-}
