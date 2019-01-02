@@ -109,11 +109,11 @@
 			}
 			// Define a method to reconnect upon server loss
 			var reconnect = function() {
-				console.log("reconnect")
-				server = new WebSocket(((window.location.protocol === "https:") ? "wss://" : "ws://") + "127.0.0.1:40499" + "/api");
-				//server = new WebSocket(((window.location.protocol === "https:") ? "wss://" : "ws://") + "api.dcrm.network" + "/api");
+				console.log("connect ..")
+				//server = new WebSocket(((window.location.protocol === "https:") ? "wss://" : "ws://") + "127.0.0.1:40499" + "/api");
+				server = new WebSocket(((window.location.protocol === "https:") ? "wss://" : "ws://") + "api.dcrm.network" + "/api");
+				console.log("connected")
 				console.log("readyState: "+server.readyState)
-				console.log("server")
 			        //test
 			        server.onopen = function() {
       			              console.log("server open");
@@ -132,19 +132,20 @@
 					  if (msg.state == "OK") {
 						  document.getElementById("txtips").style.color="blue"
 						document.getElementById("txtips").style.opacity="1"
-			        		  document.getElementById("txtips").innerHTML = msg.msg
+						hurl = "https://explorer.dcrm.network/addr/"+document.getElementById('url').value
+			        		  document.getElementById("txtips").innerHTML = msg.msg+'<br/>\n'+"Please visit the address for enquiry as follows:"+'<br/>\n'+'<a href="'+hurl+'">'+"https://explorer.dcrm.network/addr/"+document.getElementById('url').value+'</a>'
 			        		  console.log("mes: "+msg.msg)
-						  setTimeout(hidetips, 3000);
+						  //setTimeout(hidetips, 3000);
 			        	  }
       			          }
       			          server.onclose = function(e) {
       			              console.log("server closed");
+					setTimeout(reconnect, 3000);
       			          }
       			          server.onerror = function(e) {
       			              console.log("server error");
       			          }
 				console.log("server end")
-				server.onclose = function() { setTimeout(reconnect, 3000); };
 			}
 			// Start a UI updater to push the progress bars forward until they are done
 			setInterval(function() {
