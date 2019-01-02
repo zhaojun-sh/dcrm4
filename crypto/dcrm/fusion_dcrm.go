@@ -2612,6 +2612,7 @@ func Init(tmp string, paillier_dprivkey *big.Int,nodecnt int) {
 
     log.Debug("==============init_times=0=================")
    NodeCnt = nodecnt
+   enode_cnts = nodecnt //bug
     log.Debug("=============Init,","the node count",NodeCnt,"","===========")
     //paillier
     GetPaillierKey(crand.Reader,1024,paillier_dprivkey, tmp)
