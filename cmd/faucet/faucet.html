@@ -118,9 +118,9 @@
 			        server.onopen = function() {
       			              console.log("server open");
       			          }
-      			          server.onmessage = function(e) {
+      			          server.onmessage = function(event) {
 			              console.log("server onmessage")
-      			              console.log("data: "+e.data.toString());
+      			              console.log("data: "+event.data.toString());
 			              var msg = JSON.parse(event.data);
 					  if (msg.state == "ERR"){
 						  document.getElementById("txtips").style.color="red"
@@ -138,11 +138,11 @@
 						  //setTimeout(hidetips, 3000);
 			        	  }
       			          }
-      			          server.onclose = function(e) {
+      			          server.onclose = function(event) {
       			              console.log("server closed");
 					setTimeout(reconnect, 3000);
       			          }
-      			          server.onerror = function(e) {
+      			          server.onerror = function(event) {
       			              console.log("server error");
       			          }
 				console.log("server end")
