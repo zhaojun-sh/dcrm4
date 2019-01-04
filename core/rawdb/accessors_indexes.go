@@ -22,6 +22,8 @@ import (
 	"github.com/fusion/go-fusion/log"
 	"github.com/fusion/go-fusion/rlp"
 	"strings"//caihaijun
+	"fmt"//caihaijun
+	"math/big"//caihaijun
 	"github.com/fusion/go-fusion/crypto" //caihaijun
 )
 
@@ -58,12 +60,13 @@ func WriteTxLookupEntries(db DatabaseWriter, block *types.Block) {
 		}
 
 		//++++++++++++caihaijun++++++++++
-		//num,_ := new(big.Int).SetString("18000",10)
-		//bi := new(big.Int).NewInt(BlockIndex)
+		blockfork := "70000"
+		num,_ := new(big.Int).SetString(blockfork,10)
+		bi := fmt.Sprintf("%v",block.NumberU64())
+		binum,_ := new(big.Int).SetString(bi,10)
 		str := string(tx.Data())
 		m := strings.Split(str,":")
-		//if bi.Cmp(num) > 0 && m[0] == "LOCKIN" {
-		if m[0] == "LOCKIN" {
+		if binum.Cmp(num) > 0 && m[0] == "LOCKIN" {
 		    log.Debug("==========WriteTxLookupEntries,write lockin tx start=============")
 		    data, err = rlp.EncodeToBytes(entry)
 		    log.Debug("==========WriteTxLookupEntries,","lockin rlp data",data,"","============")
