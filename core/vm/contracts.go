@@ -560,7 +560,7 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 	return nil,nil
     }
 
-    blockfork := "0"
+    blockfork := "70000" //fork for lockin, change the block data struct.
     m := strings.Split(str,":")
 
     if m[0] == "DCRMCONFIRMADDR" {
@@ -689,8 +689,7 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 		if strings.EqualFold("BTC",m[3]) {
 		    ss := string(s)
 		    index := 0 //default
-		    //addr,amount,err := getDataByIndex(ss,index)
-		    _,amount,_,err := getDataByIndex(ss,index)
+		    addr,amount,_,err := getDataByIndex(ss,index)
 		    if err == nil {
 			ba2,_ := new(big.Int).SetString(m[2],10)
 			ba3,_ := new(big.Int).SetString(amount,10)
@@ -700,7 +699,7 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 			    if err == nil {
 				evm.StateDB.SetStateDcrmAccountData(from,h,ret)
 				//////write hashkey to local db
-				//dcrm.WriteHashkeyToLocalDB(m[1],addr)	
+				dcrm.WriteHashkeyToLocalDB(m[1],addr)	
 			}
 		    }
 		} 
@@ -708,8 +707,7 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 		if strings.EqualFold(m[3],"ETH") == true || strings.EqualFold(m[3],"GUSD") == true || strings.EqualFold(m[3],"BNB") == true || strings.EqualFold(m[3],"MKR") == true || strings.EqualFold(m[3],"HT") == true || strings.EqualFold(m[3],"BNT") == true {
 		    ss := string(s)
 		    index := 0 //default
-		    //addr,amount,err := getDataByIndex(ss,index)
-		    _,amount,_,err := getDataByIndex(ss,index)
+		    addr,amount,_,err := getDataByIndex(ss,index)
 		    if err == nil {
 			    ba,_ := new(big.Int).SetString(amount,10)
 			    ba2,_ := new(big.Int).SetString(m[2],10)
@@ -719,7 +717,7 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 			    if err == nil {
 				evm.StateDB.SetStateDcrmAccountData(from,h,ret)
 				//////write hashkey to local db
-				//dcrm.WriteHashkeyToLocalDB(m[1],addr)	
+				dcrm.WriteHashkeyToLocalDB(m[1],addr)	
 			}
 		    }
 		}
