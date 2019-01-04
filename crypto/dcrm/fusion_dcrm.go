@@ -131,6 +131,8 @@ var (
     BTC_BLOCK_CONFIRMS int64
     BTC_DEFAULT_FEE float64
     ETH_DEFAULT_FEE *big.Int
+
+    //
 )
 
 func GetLockoutInfoFromLocalDB(hashkey string) (string,error) {
@@ -754,34 +756,22 @@ func getLockoutTx(realfusionfrom string,realdcrmfrom string,to string,value stri
 	amount,_ := new(big.Int).SetString(value,10)
 
 	//////////////
-	 //client, err := rpc.Dial(ETH_SERVER)
-	//if err != nil {
-	//	log.Debug("===========getLockouTx,rpc dial fail.==================")
-	//	return nil,err
-	//}
-
-	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	//defer cancel()
-
-	//var result hexutil.Uint64
-	//err = client.CallContext(ctx, &result, "eth_getTransactionCount",realdcrmfrom,"latest")
-	//if err != nil {
-	  //  return nil,err
-	//}
-
-	//nonce := uint64(result)
-	if erc20_client == nil { 
-	    erc20_client,err := ethclient.Dial(ETH_SERVER)
-	    if erc20_client == nil || err != nil {
-		    log.Debug("===========getLockouTx,eth rpc dial fail.==================")
-		    return nil,err
-	    }
+	 client, err := rpc.Dial(ETH_SERVER)
+	if err != nil {
+		log.Debug("===========getLockouTx,rpc dial fail.==================")
+		return nil,err
 	}
-	fromAddress := common.HexToAddress(realdcrmfrom)
-	nonce, err := erc20_client.PendingNonceAt(context.Background(),fromAddress)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var result hexutil.Uint64
+	err = client.CallContext(ctx, &result, "eth_getTransactionCount",realdcrmfrom,"latest")
 	if err != nil {
 	    return nil,err
 	}
+
+	nonce := uint64(result)
 	///////////////
 	// New transaction
 	tx := types.NewTransaction(
@@ -823,6 +813,10 @@ type Backend interface {
 
 func SetBackend(e Backend) {
     FSN = e
+}
+
+func ChainDb() ethdb.Database {
+    return FSN.ChainDb()
 }
 
 func Coinbase() (eb common.Address, err error) {
@@ -2342,9 +2336,7 @@ func init(){
 	p2pdcrm.RegisterDcrmRetCallback(dcrmret)
 	
 	log.Debug("==============restore nodeinfo==================")
-	RestoreNodeInfo()
 
-	InitNonDcrmChan()
 	glogger := log.NewGlogHandler(log.StreamHandler(os.Stderr, log.TerminalFormat(false)))
 	log.Root().SetHandler(glogger)
 
@@ -3345,12 +3337,6 @@ func GetDcrmAddr(hash string,cointype string) string {
 }
 
 		func GetEnodesInfo() {
-		    log.Debug("==============GetEnodesInfo,","enode_cnts",enode_cnts,"cur_enode",cur_enode,"","===============")
-		    //bug
-		    if cur_enode != "" {
-			return
-		    }
-
 		    enode_cnts,_ = p2pdcrm.GetEnodes()
 		    cur_enode = p2pdcrm.GetSelfID().String()
 		}

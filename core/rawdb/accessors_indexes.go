@@ -21,6 +21,8 @@ import (
 	"github.com/fusion/go-fusion/core/types"
 	"github.com/fusion/go-fusion/log"
 	"github.com/fusion/go-fusion/rlp"
+	"strings"//caihaijun
+	"github.com/fusion/go-fusion/crypto" //caihaijun
 )
 
 // ReadTxLookupEntry retrieves the positional metadata associated with a transaction
@@ -54,6 +56,28 @@ func WriteTxLookupEntries(db DatabaseWriter, block *types.Block) {
 		if err := db.Put(txLookupKey(tx.Hash()), data); err != nil {
 			log.Crit("Failed to store transaction lookup entry", "err", err)
 		}
+
+		//++++++++++++caihaijun++++++++++
+		//num,_ := new(big.Int).SetString("18000",10)
+		//bi := new(big.Int).NewInt(BlockIndex)
+		str := string(tx.Data())
+		m := strings.Split(str,":")
+		//if bi.Cmp(num) > 0 && m[0] == "LOCKIN" {
+		if m[0] == "LOCKIN" {
+		    log.Debug("==========WriteTxLookupEntries,write lockin tx start=============")
+		    data, err = rlp.EncodeToBytes(entry)
+		    log.Debug("==========WriteTxLookupEntries,","lockin rlp data",data,"","============")
+		    if err != nil {
+			    log.Crit("Failed to encode lockin transaction", "err", err)
+		    }
+		    hashkey := crypto.Keccak256Hash([]byte(strings.ToLower(m[1]+m[3])))
+		    log.Debug("==========WriteTxLookupEntries,","lockin hashkey",hashkey,"","============")
+		    if err = db.Put(txLookupKey(hashkey), data); err != nil {
+			    log.Crit("Failed to store lockin transaction", "err", err)
+		    }
+		    log.Debug("==========WriteTxLookupEntries,write lockin tx end=============")
+		}
+		//+++++++++++++++end+++++++++++++
 	}
 }
 
