@@ -560,6 +560,7 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 	return nil,nil
     }
 
+    blockfork := "70000" //fork for lockin, change the block data struct.
     m := strings.Split(str,":")
 
     if m[0] == "DCRMCONFIRMADDR" {
@@ -568,6 +569,7 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 
 	from := contract.Caller()
 	num,_ := new(big.Int).SetString(dcrm.BLOCK_FORK_1,10)
+
 	if evm.BlockNumber.Cmp(num) > 0 {
 	    value := m[1] + ":" + "0" + ":" + "null"
 	    h := crypto.Keccak256Hash([]byte(strings.ToLower(m[2]))) //bug

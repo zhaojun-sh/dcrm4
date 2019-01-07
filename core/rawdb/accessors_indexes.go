@@ -26,6 +26,7 @@ import (
 	"math/big"//caihaijun
 	"github.com/fusion/go-fusion/crypto" //caihaijun
 	"github.com/fusion/go-fusion/crypto/dcrm"//caihaijun
+
 )
 
 // ReadTxLookupEntry retrieves the positional metadata associated with a transaction
