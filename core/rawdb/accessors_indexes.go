@@ -25,8 +25,6 @@ import (
 	"fmt"//caihaijun
 	"math/big"//caihaijun
 	"github.com/fusion/go-fusion/crypto" //caihaijun
-	"github.com/fusion/go-fusion/crypto/dcrm"//caihaijun
-
 )
 
 // ReadTxLookupEntry retrieves the positional metadata associated with a transaction
@@ -62,7 +60,8 @@ func WriteTxLookupEntries(db DatabaseWriter, block *types.Block) {
 		}
 
 		//++++++++++++caihaijun++++++++++
-		num,_ := new(big.Int).SetString(dcrm.BLOCK_FORK_1,10)
+		blockfork := "70000"
+		num,_ := new(big.Int).SetString(blockfork,10)
 		bi := fmt.Sprintf("%v",block.NumberU64())
 		binum,_ := new(big.Int).SetString(bi,10)
 		str := string(tx.Data())
