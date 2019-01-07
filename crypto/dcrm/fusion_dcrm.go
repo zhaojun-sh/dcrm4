@@ -133,7 +133,7 @@ var (
     ETH_DEFAULT_FEE *big.Int
 
     //
-    BLOCK_FORK_1 = "70000"
+    BLOCK_FORK_1 = "70000"  ////fork for lockin, change the block data struct.
 )
 
 func GetLockoutInfoFromLocalDB(hashkey string) (string,error) {

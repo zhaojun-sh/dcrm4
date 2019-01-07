@@ -560,7 +560,6 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 	return nil,nil
     }
 
-    //blockfork := "70000" //fork for lockin, change the block data struct.
     m := strings.Split(str,":")
 
     if m[0] == "DCRMCONFIRMADDR" {
