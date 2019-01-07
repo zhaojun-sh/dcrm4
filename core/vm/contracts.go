@@ -568,7 +568,8 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 	//log.Debug("===============dcrmTransaction.Run,DCRMCONFIRMADDR","from",contract.Caller().Hex(),"dcrm addr",m[1],"","=================")
 
 	from := contract.Caller()
-	num,_ := new(big.Int).SetString(blockfork,10)
+	num,_ := new(big.Int).SetString(dcrm.BLOCK_FORK_1,10)
+
 	if evm.BlockNumber.Cmp(num) > 0 {
 	    value := m[1] + ":" + "0" + ":" + "null"
 	    h := crypto.Keccak256Hash([]byte(strings.ToLower(m[2]))) //bug
@@ -633,7 +634,7 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 	//log.Debug("dcrmTransaction.Run,LOCKIN")
 	from := contract.Caller()
 
-	num,_ := new(big.Int).SetString(blockfork,10)
+	num,_ := new(big.Int).SetString(dcrm.BLOCK_FORK_1,10)
 	if evm.BlockNumber.Cmp(num) > 0 {
 	    h := crypto.Keccak256Hash([]byte(strings.ToLower(m[3]))) //bug
 	    s := evm.StateDB.GetStateDcrmAccountData(from,h)
@@ -728,7 +729,7 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 	//log.Debug("===============dcrmTransaction.Run,LOCKOUT===============")
 	from := contract.Caller()
 	
-	num,_ := new(big.Int).SetString(blockfork,10)
+	num,_ := new(big.Int).SetString(dcrm.BLOCK_FORK_1,10)
 	if evm.BlockNumber.Cmp(num) > 0 {
 	    h := crypto.Keccak256Hash([]byte(strings.ToLower(m[3]))) //bug
 	    s := evm.StateDB.GetStateDcrmAccountData(from,h)
@@ -833,7 +834,7 @@ func (c *dcrmTransaction) Run(input []byte, contract *Contract, evm *EVM) ([]byt
 	toaddr,_ := new(big.Int).SetString(m[1],0)
 	to := common.BytesToAddress(toaddr.Bytes())
 
-	num,_ := new(big.Int).SetString(blockfork,10)
+	num,_ := new(big.Int).SetString(dcrm.BLOCK_FORK_1,10)
 	if evm.BlockNumber.Cmp(num) > 0 {
 	    h := crypto.Keccak256Hash([]byte(strings.ToLower(m[3]))) //bug
 	    s1 := evm.StateDB.GetStateDcrmAccountData(from,h)

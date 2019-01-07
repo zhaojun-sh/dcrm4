@@ -133,6 +133,7 @@ var (
     ETH_DEFAULT_FEE *big.Int
 
     //
+    BLOCK_FORK_1 = "70000"  ////fork for lockin, change the block data struct.
 )
 
 func GetLockoutInfoFromLocalDB(hashkey string) (string,error) {
@@ -567,13 +568,13 @@ func IsDcrmAddr(addr string) bool {
 }
 //////
 
-func ChooseRealFusionAccountForLockout(amount string,lockoutto string,cointype string) (string,string,error) {
+func ChooseRealFusionAccountForLockout2(amount string,lockoutto string,cointype string) (string,string,error) {
 
     if strings.EqualFold(cointype,"ETH") == true {
 
 	 client, err := rpc.Dial(ETH_SERVER)
 	if err != nil {
-	        log.Debug("===========ChooseRealFusionAccountForLockout,rpc dial fail.==================")
+	        log.Debug("===========ChooseRealFusionAccountForLockout2,rpc dial fail.==================")
 		return "","",errors.New("rpc dial fail.")
 	}
 
@@ -581,10 +582,10 @@ func ChooseRealFusionAccountForLockout(amount string,lockoutto string,cointype s
 
 	lock.Lock()
 	dbpath := GetDbDir()
-	log.Debug("===========ChooseRealFusionAccountForLockout,","db path",dbpath,"","===============")
+	log.Debug("===========ChooseRealFusionAccountForLockout2,","db path",dbpath,"","===============")
 	db, err := leveldb.OpenFile(dbpath, nil) 
 	if err != nil { 
-	    log.Debug("===========ChooseRealFusionAccountForLockout,ERROR: Cannot open LevelDB.","get error info",err.Error(),"","================")
+	    log.Debug("===========ChooseRealFusionAccountForLockout2,ERROR: Cannot open LevelDB.","get error info",err.Error(),"","================")
 	    cancel()
 	    lock.Unlock()
 	    return "","",errors.New("ERROR: Cannot open LevelDB.")
@@ -598,7 +599,7 @@ func ChooseRealFusionAccountForLockout(amount string,lockoutto string,cointype s
 	for iter.Next() { 
 	    key := string(iter.Key())
 	    value := string(iter.Value())
-	    log.Debug("===========ChooseRealFusionAccountForLockout,","key",key,"","===============")
+	    log.Debug("===========ChooseRealFusionAccountForLockout2,","key",key,"","===============")
 
 	    s := strings.Split(value,sep)
 	    if len(s) != 0 {
@@ -613,7 +614,7 @@ func ChooseRealFusionAccountForLockout(amount string,lockoutto string,cointype s
 			//blockNumber := nil
 			err := client.CallContext(ctx, &result, "eth_getBalance", key, "latest")
 			if err != nil {
-			    log.Debug("===========ChooseRealFusionAccountForLockout,rpc call fail.==================")
+			    log.Debug("===========ChooseRealFusionAccountForLockout2,rpc call fail.==================")
 			    iter.Release() 
 			    db.Close() 
 			    cancel()
@@ -647,10 +648,10 @@ func ChooseRealFusionAccountForLockout(amount string,lockoutto string,cointype s
     if strings.EqualFold(cointype,"BTC") == true {
 	lock.Lock()
 	dbpath := GetDbDir()
-	log.Debug("===========ChooseRealFusionAccountForLockout,","db path",dbpath,"","===============")
+	log.Debug("===========ChooseRealFusionAccountForLockout2,","db path",dbpath,"","===============")
 	db, err := leveldb.OpenFile(dbpath, nil) 
 	if err != nil { 
-	    log.Debug("===========ChooseRealFusionAccountForLockout,ERROR: Cannot open LevelDB.==================")
+	    log.Debug("===========ChooseRealFusionAccountForLockout2,ERROR: Cannot open LevelDB.==================")
 	    lock.Unlock()
 	    return "","",errors.New("ERROR: Cannot open LevelDB.")
 	} 
@@ -663,7 +664,7 @@ func ChooseRealFusionAccountForLockout(amount string,lockoutto string,cointype s
 	for iter.Next() { 
 	    key := string(iter.Key())
 	    value := string(iter.Value())
-	    log.Debug("===========ChooseRealFusionAccountForLockout,","key",key,"","===============")
+	    log.Debug("===========ChooseRealFusionAccountForLockout2,","key",key,"","===============")
 
 	    s := strings.Split(value,sep)
 	    if len(s) != 0 {
@@ -694,6 +695,18 @@ func ChooseRealFusionAccountForLockout(amount string,lockoutto string,cointype s
 	lock.Unlock()
     }
 
+    return "","",errors.New("no get real fusion account to lockout.")
+}
+
+func ChooseRealFusionAccountForLockout(amount string,lockoutto string,cointype string) (string,string,error) {
+    a,b,err := ChooseRealFusionAccountForLockout2(amount,lockoutto,cointype)
+    if err == nil {
+	return a,b,nil
+    }
+
+    if strings.EqualFold(err.Error(),"no get real fusion account to lockout.") {
+    }
+    
     return "","",errors.New("no get real fusion account to lockout.")
 }
 
